@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:workflow="http://symfony.com/schema/dic/workflow"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <workflow:config>
+        <workflow:workflows>
+            <workflow:workflow name="my_workflow">
+                <workflow:marking-store>
+                    <workflow:type>property_accessor</workflow:type>
+                    <workflow:arguments>a</workflow:arguments>
+                    <workflow:arguments>a</workflow:arguments>
+                </workflow:marking-store>
+                <workflow:supports>Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\FrameworkExtensionTest</workflow:supports>
+                <workflow:places>first</workflow:places>
+                <workflow:places>last</workflow:places>
+                <workflow:transitions>
+                    <workflow:transition name="foobar">
+                        <workflow:from>a</workflow:from>
+                        <workflow:to>a</workflow:to>
+                    </workflow:transition>
+                </workflow:transitions>
+            </workflow:workflow>
+        </workflow:workflows>
+    </workflow:config>
+</container>
