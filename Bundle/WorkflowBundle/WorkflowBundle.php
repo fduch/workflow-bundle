@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Gtt\Bundle\WorkflowBundle;
+namespace Symfony\Bundle\WorkflowBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
