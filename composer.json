@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "symfony/workflow": "^3.2@dev",
+        "symfony/workflow": "master",
         "symfony/console": "^2.3|^3.0",
         "symfony/framework-bundle": "^2.3|3.0 - 3.1"
     },
