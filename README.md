@@ -23,3 +23,8 @@ public function registerBundles()
     );
 }
 ```
+
+Please note that until Symfony 3.2 is released workflow-bundle requires "^3.2@dev" version of "symfony/workflow"
+package. So in order to properly install the bundle you should set minimum stability for "symfony/workflow" 
+to "@dev" by requiring "symfony/workflow: @dev" (preferred) or reduce global [minimum-stability](https://getcomposer.org/doc/04-schema.md#minimum-stability) to "dev" in your application-level composer.json. 
+
