@@ -68,7 +68,13 @@ class WorkflowExtension extends Extension
             }
 
             if (isset($workflow['marking_store']['type'])) {
-                $markingStoreDefinition = new DefinitionDecorator('workflow.marking_store.'.$workflow['marking_store']['type']);
+                $parentDefinitionId     = 'workflow.marking_store.' . $workflow['marking_store']['type'];
+                $markingStoreDefinition = new DefinitionDecorator($parentDefinitionId);
+                $parentDefinitionClass  = $container->getDefinition($parentDefinitionId)->getClass();
+                // explicitly set parent class to decorated definition in order to fix inconsistent behavior for <=2.7
+                // see https://github.com/symfony/symfony/issues/17353 and https://github.com/symfony/symfony/pull/15096
+                $markingStoreDefinition->setClass($parentDefinitionClass);
+
                 foreach ($workflow['marking_store']['arguments'] as $argument) {
                     $markingStoreDefinition->addArgument($argument);
                 }
