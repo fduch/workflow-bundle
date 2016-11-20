@@ -11,6 +11,7 @@
 
 namespace Symfony\Bundle\WorkflowBundle;
 
+use Symfony\Bundle\WorkflowBundle\DependencyInjection\Compiler\ValidateWorkflowsPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
