@@ -32,22 +32,31 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('workflow');
 
         $rootNode
+            ->fixXmlConfig('workflow')
             ->children()
                 ->arrayNode('workflows')
                     ->useAttributeAsKey('name')
                     ->prototype('array')
+                        ->fixXmlConfig('support')
+                        ->fixXmlConfig('place')
+                        ->fixXmlConfig('transition')
                         ->children()
+                            ->enumNode('type')
+                                ->values(array('workflow', 'state_machine'))
+                                ->defaultValue('workflow')
+                            ->end()
                             ->arrayNode('marking_store')
-                                ->isRequired()
+                                ->fixXmlConfig('argument')
                                 ->children()
                                     ->enumNode('type')
-                                        ->values(array('property_accessor', 'scalar'))
+                                        ->values(array('multiple_state', 'single_state'))
                                     ->end()
                                     ->arrayNode('arguments')
                                         ->beforeNormalization()
                                             ->ifString()
                                             ->then(function ($v) { return array($v); })
                                         ->end()
+                                        ->requiresAtLeastOneElement()
                                         ->prototype('scalar')
                                         ->end()
                                     ->end()
@@ -56,13 +65,12 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                                 ->validate()
-                                    ->always(function ($v) {
-                                        if (isset($v['type']) && isset($v['service'])) {
-                                            throw new \InvalidArgumentException('"type" and "service" could not be used together.');
-                                        }
-
-                                        return $v;
-                                    })
+                                    ->ifTrue(function ($v) { return isset($v['type']) && isset($v['service']); })
+                                    ->thenInvalid('"type" and "service" cannot be used together.')
+                                ->end()
+                                ->validate()
+                                    ->ifTrue(function ($v) { return isset($v['arguments']) && isset($v['service']); })
+                                    ->thenInvalid('"arguments" and "service" cannot be used together.')
                                 ->end()
                             ->end()
                             ->arrayNode('supports')
@@ -79,6 +87,7 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
+                            ->scalarNode('initial_place')->defaultNull()->end()
                             ->arrayNode('places')
                                 ->isRequired()
                                 ->requiresAtLeastOneElement()
