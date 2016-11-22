@@ -86,13 +86,18 @@ class WorkflowExtension extends Extension
             }
             // Create MarkingStore
             if (isset($workflow['marking_store']['type'])) {
-                $markingStoreDefinition = new DefinitionDecorator('workflow.marking_store.'.$workflow['marking_store']['type']);
+                $parentDefinitionId     = 'workflow.marking_store.' . $workflow['marking_store']['type'];
+                $markingStoreDefinition = new DefinitionDecorator($parentDefinitionId);
                 foreach ($workflow['marking_store']['arguments'] as $argument) {
                     $markingStoreDefinition->addArgument($argument);
                 }
+                // explicitly set parent class to decorated definition in order to fix inconsistent behavior for <=2.7
+                // see https://github.com/symfony/symfony/issues/17353 and https://github.com/symfony/symfony/pull/15096
+                $markingStoreDefinition->setClass($container->getDefinition($parentDefinitionId)->getClass());
             } elseif (isset($workflow['marking_store']['service'])) {
                 $markingStoreDefinition = new Reference($workflow['marking_store']['service']);
             }
+
             // Create Workflow
             $workflowDefinition = new DefinitionDecorator(sprintf('%s.abstract', $type));
             $workflowDefinition->replaceArgument(0, $definitionDefinition);
