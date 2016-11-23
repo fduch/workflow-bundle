@@ -11,6 +11,8 @@
 
 namespace Symfony\Bundle\WorkflowBundle;
 
+use Symfony\Bundle\WorkflowBundle\DependencyInjection\Compiler\ValidateWorkflowsPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
@@ -18,4 +20,9 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class WorkflowBundle extends Bundle
 {
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+        $container->addCompilerPass(new ValidateWorkflowsPass());
+    }
 }

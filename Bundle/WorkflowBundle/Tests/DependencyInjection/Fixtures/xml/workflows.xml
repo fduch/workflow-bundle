@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:workflow="http://symfony.com/schema/dic/workflow"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <workflow:config>
+        <workflow:workflow name="article" type="workflow" initial-place="draft">
+            <workflow:marking-store type="multiple_state">
+                <workflow:argument>a</workflow:argument>
+                <workflow:argument>a</workflow:argument>
+            </workflow:marking-store>
+            <workflow:support>Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\FrameworkExtensionTest</workflow:support>
+            <workflow:place>draft</workflow:place>
+            <workflow:place>wait_for_journalist</workflow:place>
+            <workflow:place>approved_by_journalist</workflow:place>
+            <workflow:place>wait_for_spellchecker</workflow:place>
+            <workflow:place>approved_by_spellchecker</workflow:place>
+            <workflow:place>published</workflow:place>
+            <workflow:transition name="request_review">
+                <workflow:from>draft</workflow:from>
+                <workflow:to>wait_for_journalist</workflow:to>
+                <workflow:to>wait_for_spellchecker</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="journalist_approval">
+                <workflow:from>wait_for_journalist</workflow:from>
+                <workflow:to>approved_by_journalist</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="spellchecker_approval">
+                <workflow:from>wait_for_spellcheker</workflow:from>
+                <workflow:to>approved_by_spellchker</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="publish">
+                <workflow:from>approved_by_journalist</workflow:from>
+                <workflow:from>approved_by_spellchker</workflow:from>
+                <workflow:to>published</workflow:to>
+            </workflow:transition>
+        </workflow:workflow>
+
+        <workflow:workflow name="pull_request" type="state_machine" initial-place="start">
+            <workflow:marking-store type="single_state"/>
+            <workflow:support>Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\FrameworkExtensionTest</workflow:support>
+            <workflow:place>start</workflow:place>
+            <workflow:place>coding</workflow:place>
+            <workflow:place>travis</workflow:place>
+            <workflow:place>review</workflow:place>
+            <workflow:place>merged</workflow:place>
+            <workflow:place>closed</workflow:place>
+            <workflow:transition name="submit">
+                <workflow:from>start</workflow:from>
+                <workflow:to>travis</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="update">
+                <workflow:from>coding</workflow:from>
+                <workflow:from>travis</workflow:from>
+                <workflow:from>review</workflow:from>
+                <workflow:to>travis</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="wait_for_review">
+                <workflow:from>travis</workflow:from>
+                <workflow:to>review</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="request_change">
+                <workflow:from>review</workflow:from>
+                <workflow:to>coding</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="accept">
+                <workflow:from>review</workflow:from>
+                <workflow:to>merged</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="reject">
+                <workflow:from>review</workflow:from>
+                <workflow:to>closed</workflow:to>
+            </workflow:transition>
+            <workflow:transition name="reopen">
+                <workflow:from>closed</workflow:from>
+                <workflow:to>review</workflow:to>
+            </workflow:transition>
+        </workflow:workflow>
+    </workflow:config>
+</container>

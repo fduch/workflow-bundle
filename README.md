@@ -9,6 +9,12 @@ workflow configuration must be set under `workflow` section instead of `framewor
 Such difference is caused by the fact that workflow configurations are handled by 
 separate WorkflowBundle introduced by this package instead of FrameworkBundle in Symfony 3.2+.
 
+
+> Due to BC-breaks introduced in Workflow component and FrameworkBundle inside 3.2-branch (https://github.com/symfony/symfony/pull/20462)
+> please use ([1.x](https://github.com/fduch/workflow-bundle/tree/1.x)) branch of the fduch/workflow-bundle with [symfony/workflow](https://github.com/symfony/workflow) component in old versions up to [cdddaeec794e4096f2f80f0298fc1a4b5bfacb83](https://github.com/symfony/workflow/commit/cdddaeec794e4096f2f80f0298fc1a4b5bfacb83) (non-including).
+> Unfortunately there is no way to define such version constraint restrictions on the composer.json level: it can be done nether with `require` nor  `conflict` sections, so you should check it manually.
+
+
 Usage
 =====
 Please install the bundle using composer:
