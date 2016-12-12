@@ -78,5 +78,16 @@
                 <workflow:to>review</workflow:to>
             </workflow:transition>
         </workflow:workflow>
+
+        <workflow:workflow name="service_marking_store_workflow">
+            <workflow:marking-store service="workflow_service"/>
+            <workflow:support>Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\FrameworkExtensionTest</workflow:support>
+            <workflow:place>first</workflow:place>
+            <workflow:place>last</workflow:place>
+            <workflow:transition name="go">
+                <workflow:from>first</workflow:from>
+                <workflow:to>last</workflow:to>
+            </workflow:transition>
+        </workflow:workflow>
     </workflow:config>
 </container>
