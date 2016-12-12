@@ -14,6 +14,7 @@ namespace Symfony\Bundle\WorkflowBundle\Tests\DependencyInjection;
 use Symfony\Bundle\WorkflowBundle\DependencyInjection\WorkflowExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Reference;
 
 abstract class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
 {
@@ -60,6 +61,12 @@ abstract class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(array('workflow.definition' => array(array('name' => 'pull_request', 'type' => 'state_machine', 'marking_store' => 'single_state'))), $stateMachineDefinition->getTags());
         $this->assertCount(9, $stateMachineDefinition->getArgument(1));
         $this->assertSame('start', $stateMachineDefinition->getArgument(2));
+
+        $serviceMarkingStoreWorkflowDefinition = $container->getDefinition('workflow.service_marking_store_workflow');
+        /** @var Reference $markingStoreRef */
+        $markingStoreRef = $serviceMarkingStoreWorkflowDefinition->getArgument(1);
+        $this->assertInstanceOf(Reference::class, $markingStoreRef);
+        $this->assertEquals('workflow_service', (string) $markingStoreRef);
     }
     /**
      * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
