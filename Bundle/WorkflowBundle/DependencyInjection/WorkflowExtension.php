@@ -146,8 +146,8 @@ class WorkflowExtension extends Extension
             // Add Guard Listener
             $guard = new Definition(Workflow\EventListener\GuardListener::class);
             $configuration = array();
-            foreach ($workflow['transitions'] as $transitionName => $config) {
-                if (!isset($config['guard'])) {
+            foreach ($workflow['transitions'] as $transition) {
+                if (!isset($transition['guard'])) {
                     continue;
                 }
 
@@ -155,9 +155,9 @@ class WorkflowExtension extends Extension
                     throw new LogicException('Cannot guard workflows as the ExpressionLanguage component is not installed.');
                 }
 
-                $eventName = sprintf('workflow.%s.guard.%s', $name, $transitionName);
+                $eventName = sprintf('workflow.%s.guard.%s', $name, $transition['name']);
                 $guard->addTag('kernel.event_listener', array('event' => $eventName, 'method' => 'onTransition'));
-                $configuration[$eventName] = $config['guard'];
+                $configuration[$eventName] = $transition['guard'];
             }
 
             if ($configuration) {
