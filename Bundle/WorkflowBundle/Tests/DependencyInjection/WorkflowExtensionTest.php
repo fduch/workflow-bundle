@@ -41,8 +41,8 @@ abstract class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
             'Places are passed to the workflow definition'
         );
         $this->assertSame(array('workflow.definition' => array(array('name' => 'article', 'type' => 'workflow', 'marking_store' => 'multiple_state'))), $workflowDefinition->getTags());
-        $this->assertTrue($container->hasDefinition('state_machine.pull_request', 'State machine is registered as a service'));
-        $this->assertTrue($container->hasDefinition('state_machine.pull_request.definition', 'State machine definition is registered as a service'));
+        $this->assertTrue($container->hasDefinition('state_machine.pull_request'), 'State machine is registered as a service');
+        $this->assertTrue($container->hasDefinition('state_machine.pull_request.definition'), 'State machine definition is registered as a service');
         $this->assertCount(4, $workflowDefinition->getArgument(1));
         $this->assertSame('draft', $workflowDefinition->getArgument(2));
         $stateMachineDefinition = $container->getDefinition('state_machine.pull_request.definition');

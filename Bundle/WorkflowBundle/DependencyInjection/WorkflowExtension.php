@@ -14,6 +14,8 @@ namespace Symfony\Bundle\WorkflowBundle\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
+use Symfony\Component\DependencyInjection\ExpressionLanguage;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -55,22 +57,26 @@ class WorkflowExtension extends Extension
         if (!$workflows) {
             return;
         }
+
         $loader->load('workflow.xml');
         $registryDefinition = $container->getDefinition('workflow.registry');
+
         foreach ($workflows as $name => $workflow) {
             $type = $workflow['type'];
+
             $transitions = array();
-            foreach ($workflow['transitions'] as $transitionName => $transition) {
+            foreach ($workflow['transitions'] as $transition) {
                 if ($type === 'workflow') {
-                    $transitions[] = new Definition(Workflow\Transition::class, array($transitionName, $transition['from'], $transition['to']));
+                    $transitions[] = new Definition(Workflow\Transition::class, array($transition['name'], $transition['from'], $transition['to']));
                 } elseif ($type === 'state_machine') {
                     foreach ($transition['from'] as $from) {
                         foreach ($transition['to'] as $to) {
-                            $transitions[] = new Definition(Workflow\Transition::class, array($transitionName, $from, $to));
+                            $transitions[] = new Definition(Workflow\Transition::class, array($transition['name'], $from, $to));
                         }
                     }
                 }
             }
+
             // Create a Definition
             $definitionDefinition = new Definition(Workflow\Definition::class);
             $definitionDefinition->setPublic(false);
@@ -84,6 +90,7 @@ class WorkflowExtension extends Extension
             if (isset($workflow['initial_place'])) {
                 $definitionDefinition->addArgument($workflow['initial_place']);
             }
+
             // Create MarkingStore
             if (isset($workflow['marking_store']['type'])) {
                 $parentDefinitionId     = 'workflow.marking_store.' . $workflow['marking_store']['type'];
@@ -105,13 +112,59 @@ class WorkflowExtension extends Extension
                 $workflowDefinition->replaceArgument(1, $markingStoreDefinition);
             }
             $workflowDefinition->replaceArgument(3, $name);
+
             // Store to container
             $workflowId = sprintf('%s.%s', $type, $name);
             $container->setDefinition($workflowId, $workflowDefinition);
             $container->setDefinition(sprintf('%s.definition', $workflowId), $definitionDefinition);
+
             // Add workflow to Registry
             foreach ($workflow['supports'] as $supportedClass) {
                 $registryDefinition->addMethodCall('add', array(new Reference($workflowId), $supportedClass));
+            }
+
+            // Enable the AuditTrail
+            if ($workflow['audit_trail']['enabled']) {
+                $listener = new Definition(Workflow\EventListener\AuditTrailListener::class);
+                $listener->addTag('monolog.logger', array('channel' => 'workflow'));
+                $listener->addTag('kernel.event_listener', array('event' => sprintf('workflow.%s.leave', $name), 'method' => 'onLeave'));
+                $listener->addTag('kernel.event_listener', array('event' => sprintf('workflow.%s.transition', $name), 'method' => 'onTransition'));
+                $listener->addTag('kernel.event_listener', array('event' => sprintf('workflow.%s.enter', $name), 'method' => 'onEnter'));
+                $listener->addArgument(new Reference('logger'));
+                $container->setDefinition(sprintf('%s.listener.audit_trail', $workflowId), $listener);
+            }
+
+            if (!class_exists('Symfony\Component\Workflow\EventListener\GuardListener')) {
+                continue;
+            }
+
+            // Add Guard Listener
+            $guard = new Definition(Symfony\Component\Workflow\EventListener\GuardListener::class);
+            $configuration = array();
+            foreach ($workflow['transitions'] as $transitionName => $config) {
+                if (!isset($config['guard'])) {
+                    continue;
+                }
+
+                if (!class_exists(ExpressionLanguage::class)) {
+                    throw new LogicException('Cannot guard workflows as the ExpressionLanguage component is not installed.');
+                }
+
+                $eventName = sprintf('workflow.%s.guard.%s', $name, $transitionName);
+                $guard->addTag('kernel.event_listener', array('event' => $eventName, 'method' => 'onTransition'));
+                $configuration[$eventName] = $config['guard'];
+            }
+            if ($configuration) {
+                $guard->setArguments(array(
+                    $configuration,
+                    new Reference('workflow.security.expression_language'),
+                    new Reference('security.token_storage'),
+                    new Reference('security.authorization_checker'),
+                    new Reference('security.authentication.trust_resolver'),
+                    new Reference('security.role_hierarchy'),
+                ));
+
+                $container->setDefinition(sprintf('%s.listener.guard', $workflowId), $guard);
             }
         }
     }

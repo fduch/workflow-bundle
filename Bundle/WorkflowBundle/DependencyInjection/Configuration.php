@@ -41,6 +41,9 @@ class Configuration implements ConfigurationInterface
                         ->fixXmlConfig('place')
                         ->fixXmlConfig('transition')
                         ->children()
+                            ->arrayNode('audit_trail')
+                                ->canBeEnabled()
+                            ->end()
                             ->enumNode('type')
                                 ->values(array('workflow', 'state_machine'))
                                 ->defaultValue('workflow')
@@ -74,7 +77,6 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                             ->arrayNode('supports')
-                                ->isRequired()
                                 ->beforeNormalization()
                                     ->ifString()
                                     ->then(function ($v) { return array($v); })
@@ -96,11 +98,38 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                             ->arrayNode('transitions')
-                                ->useAttributeAsKey('name')
+                                ->beforeNormalization()
+                                    ->always()
+                                    ->then(function ($transitions) {
+                                        // It's an indexed array, we let the validation occurs
+                                        if (isset($transitions[0])) {
+                                            return $transitions;
+                                        }
+
+                                        foreach ($transitions as $name => $transition) {
+                                            if (array_key_exists('name', $transition)) {
+                                                continue;
+                                            }
+                                            $transition['name'] = $name;
+                                            $transitions[$name] = $transition;
+                                        }
+
+                                        return $transitions;
+                                    })
+                                ->end()
                                 ->isRequired()
                                 ->requiresAtLeastOneElement()
                                 ->prototype('array')
                                     ->children()
+                                        ->scalarNode('name')
+                                            ->isRequired()
+                                            ->cannotBeEmpty()
+                                        ->end()
+                                        ->scalarNode('guard')
+                                            ->cannotBeEmpty()
+                                            ->info('An expression to block the transition')
+                                            ->example('is_fully_authenticated() and has_role(\'ROLE_JOURNALIST\') and subject.getTitle() == \'My first article\'')
+                                        ->end()
                                         ->arrayNode('from')
                                             ->beforeNormalization()
                                                 ->ifString()
