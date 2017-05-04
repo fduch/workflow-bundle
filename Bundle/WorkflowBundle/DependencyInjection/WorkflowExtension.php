@@ -141,7 +141,7 @@ class WorkflowExtension extends Extension
             // Add Workflow Expression Language
             $exLanguageDefinition = new Definition(Workflow\EventListener\ExpressionLanguage::class);
             $exLanguageDefinition->setPublic(false);
-            $container->set('workflow.security.expression_language', $exLanguageDefinition);
+            $container->setDefinition('workflow.security.expression_language', $exLanguageDefinition);
 
             // Add Guard Listener
             $guard = new Definition(Workflow\EventListener\GuardListener::class);
