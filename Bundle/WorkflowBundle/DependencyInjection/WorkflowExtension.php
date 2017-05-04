@@ -138,8 +138,13 @@ class WorkflowExtension extends Extension
                 continue;
             }
 
+            // Add Workflow Expression Language
+            $exLanguageDefinition = new Definition(Workflow\EventListener\ExpressionLanguage::class);
+            $exLanguageDefinition->setPublic(false);
+            $container->set('workflow.security.expression_language', $exLanguageDefinition);
+
             // Add Guard Listener
-            $guard = new Definition(Symfony\Component\Workflow\EventListener\GuardListener::class);
+            $guard = new Definition(Workflow\EventListener\GuardListener::class);
             $configuration = array();
             foreach ($workflow['transitions'] as $transitionName => $config) {
                 if (!isset($config['guard'])) {
@@ -154,6 +159,7 @@ class WorkflowExtension extends Extension
                 $guard->addTag('kernel.event_listener', array('event' => $eventName, 'method' => 'onTransition'));
                 $configuration[$eventName] = $config['guard'];
             }
+
             if ($configuration) {
                 $guard->setArguments(array(
                     $configuration,
