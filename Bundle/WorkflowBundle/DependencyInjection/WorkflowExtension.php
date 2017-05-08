@@ -120,7 +120,22 @@ class WorkflowExtension extends Extension
 
             // Add workflow to Registry
             foreach ($workflow['supports'] as $supportedClass) {
-                $registryDefinition->addMethodCall('add', array(new Reference($workflowId), $supportedClass));
+
+            }
+
+            // Add workflow to Registry
+            if ($workflow['supports']) {
+                foreach ($workflow['supports'] as $supportedClassName) {
+                    if (class_exists(Workflow\SupportStrategy\ClassInstanceSupportStrategy::class)) {
+                        $strategyDefinition = new Definition(Workflow\SupportStrategy\ClassInstanceSupportStrategy::class, array($supportedClassName));
+                        $strategyDefinition->setPublic(false);
+                        $registryDefinition->addMethodCall('add', array(new Reference($workflowId), $strategyDefinition));
+                    } else {
+                        $registryDefinition->addMethodCall('add', array(new Reference($workflowId), $supportedClassName));
+                    }
+                }
+            } elseif (isset($workflow['support_strategy'])) {
+                $registryDefinition->addMethodCall('add', array(new Reference($workflowId), new Reference($workflow['support_strategy'])));
             }
 
             // Enable the AuditTrail
